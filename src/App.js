@@ -5,7 +5,6 @@ import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Paper';
-import InfiniteScroll from 'react-infinite-scroller';
 import './App.css';
 import { Typography } from '@mui/material';
 import { words } from './words';
@@ -40,7 +39,6 @@ const idxs = [0, 1, 2, 3, 4];
 function App() {
 	const [open, setOpen] = React.useState(false);
 	const [openHelp, setOpenHelp] = React.useState(false);
-	const [scrollOffsetIdx, setScrollOffsetIdx] = React.useState(words.length);
 
 	const [inputState, setInputState] = React.useState({
 		0: { letter: '', color: 0 },
@@ -116,9 +114,7 @@ function App() {
 
 		//update possible words
 		setFoundWords(results);
-		// setScrollOffsetIdx(10 > results.length ? results.length : 10);
-		setScrollOffsetIdx(results.length);
-		handleOpen();
+		if (results.length <= 1) handleOpen();
 
 		//add the word to checks with color
 		const newCheck = {
@@ -143,11 +139,10 @@ function App() {
 		handleClose();
 	};
 
-	function loadMore() {
-		// const newOffset = scrollOffsetIdx + 10;
-		// setScrollOffsetIdx(newOffset > foundWords.length - 1 ? foundWords.length : newOffset);
-		setScrollOffsetIdx(foundWords.length);
-	}
+	const handleRandomClick = () => {
+		const word = foundWords[Math.floor(Math.random() * foundWords.length)];
+		addToInput(word);
+	};
 
 	const handleOpen = () => setOpen(true);
 	const handleClose = () => setOpen(false);
@@ -164,51 +159,27 @@ function App() {
 					aria-labelledby="modal-modal-title"
 					aria-describedby="modal-modal-description"
 				>
-					<div>
-						<InfiniteScroll
-							style={modalStyle}
-							pageStart={0}
-							loadMore={loadMore}
-							hasMore={scrollOffsetIdx < foundWords.length}
-							loader={
-								<div className="loader" key={0}>
-									Loading ...
-								</div>
-							}
-						>
-							<Stack spacing={2}>
-								{foundWords.length === 0 ? (
-									<Typography sx={{ mt: 1 }}>Oops! No Words!</Typography>
-								) : foundWords.length === 1 ? (
-									<Stack spacing={2} justifyContent="center" alignItems="center">
-										<Typography variant="h4" sx={{ mt: 1 }}>
-											Hurray.. You've solved today's Wordle
-										</Typography>
-										<Typography variant="h5" sx={{ mt: 1 }}>
-											Today's Wordle is
-										</Typography>
-										<Typography variant="h2" sx={{ mt: 1 }}>
-											{foundWords[0]}
-										</Typography>
-									</Stack>
-								) : (
-									<>
-										<Typography variant="h6" component="h2">
-											Chose a Word
-										</Typography>
-										{[...Array(scrollOffsetIdx).keys()].map((i) => (
-											<Button
-												key={foundWords[i]}
-												variant="outlined"
-												onClick={() => addToInput(foundWords[i])}
-											>
-												{foundWords[i]}
-											</Button>
-										))}
-									</>
-								)}
-							</Stack>
-						</InfiniteScroll>
+					<div style={modalStyle}>
+						<Stack spacing={2}>
+							{foundWords.length === 0 ? (
+								<Stack spacing={2} justifyContent="center" alignItems="center">
+									<Typography sx={{ mt: 1 }}>Oops! No Words!.</Typography>
+									<Typography sx={{ mt: 1 }}>If this is mistake, I need to fix some bugs ;)</Typography>
+								</Stack>
+							) : (
+								<Stack spacing={2} justifyContent="center" alignItems="center">
+									<Typography variant="h4" sx={{ mt: 1 }}>
+										Hurray.. You've solved today's Wordle
+									</Typography>
+									<Typography variant="h5" sx={{ mt: 1 }}>
+										Today's Wordle is
+									</Typography>
+									<Typography variant="h2" sx={{ mt: 1 }}>
+										{foundWords[0]}
+									</Typography>
+								</Stack>
+							)}
+						</Stack>
 					</div>
 				</Modal>
 
@@ -224,25 +195,28 @@ function App() {
 								How?
 							</Typography>
 							<Typography variant="body1" component="p">
-								1. Chose a word from the list.
+								1. Click on GET WORD to get a new word.
 							</Typography>
 							<Typography variant="body1" component="p">
-								2. Go to Wordle and type the word you chose.
+								2. Go to Wordle and submit the word you got.
 							</Typography>
 							<Typography variant="body1" component="p">
 								3. Check colors of letters and come back here.
 							</Typography>
 							<Typography variant="body1" component="p">
-								4. Click on a letter and change its color correspondingly as in Wordle.
+								4. Change letter colors correspondingly by clicking on each letters.
 							</Typography>
 							<Typography variant="body1" component="p">
 								5. Click NEXT.
 							</Typography>
 							<Typography variant="body1" component="p">
-								6. Repeat from step 1. (It will find the word in less than 6 tries)
+								6. Repeat from step 1.
 							</Typography>
 							<Typography variant="body1" component="p">
-								7. Hurray... you cracked todays Wordle!
+								#It will find the word in less than 6 tries.
+							</Typography>
+							<Typography variant="body1" component="p">
+								#The GET WORD function only finds the next possible words.
 							</Typography>
 						</Stack>
 					</Box>
@@ -265,14 +239,14 @@ function App() {
 						</Stack>
 
 						<Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-							<Button variant="contained" onClick={handleOpen}>
-								{foundWords.length === words.length ? 'Chose Your Licky Word' : 'Chose Next Word'}
+							<Button variant="contained" onClick={handleRandomClick}>
+								GET WORD
 							</Button>
 							<Button variant="outlined" onClick={handleOpenHelp}>
-								Help
+								HELP
 							</Button>
 							<Button variant="contained" onClick={handleNextClick}>
-								Next
+								NEXT
 							</Button>
 						</Stack>
 
