@@ -4,10 +4,23 @@ import Stack from '@mui/material/Stack';
 import Modal from '@mui/material/Modal';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import Card from '@mui/material/Paper';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import HelpOutlineRounded from '@mui/icons-material/HelpOutlineRounded';
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
+import CloseIcon from '@mui/icons-material/Close';
+import InfoOutlined from '@mui/icons-material/InfoOutlined';
+
 import './App.css';
-import { Typography } from '@mui/material';
 import { words } from './words';
+
+const appBarStyle = {
+	height: '56px',
+	backgroundColor: '#121213',
+};
 
 const modalStyle = {
 	position: 'absolute',
@@ -23,22 +36,34 @@ const modalStyle = {
 	maxHeight: '80vh',
 };
 
-const letterButtonStyle = { width: '60px', height: '60px', color: 'black' };
-const checkCardStyle = {
-	width: '60px',
-	height: '40px',
-	color: 'black',
-	fontSize: 'medium',
-	display: 'flex',
-	flexDirection: 'column',
-	justifyContent: 'center',
+const letterStyle = {
+	width: '62px',
+	height: '62px',
+	border: '2px solid #3a3a3c',
+	borderRadius: '0px',
+	color: 'white',
+	fontSize: '2rem',
+	fontWeight: 'bold',
+	userSelect: 'none',
+};
+
+const actionStyle = {
+	height: '58px',
+	backgroundColor: '#818384',
+	border: '0px',
 };
 
 const idxs = [0, 1, 2, 3, 4];
+const letterSpacing = 0.5;
+
+const getColor = (i) => (i === 2 ? '#328332' : i === 1 ? '#b9b925' : '#3a3a3c');
 
 function App() {
 	const [open, setOpen] = React.useState(false);
 	const [openHelp, setOpenHelp] = React.useState(false);
+	const [openInfo, setOpenInfo] = React.useState(true);
+
+	const [step, setStep] = React.useState(0);
 
 	const [inputState, setInputState] = React.useState({
 		0: { letter: '', color: 0 },
@@ -63,12 +88,13 @@ function App() {
 		setInputState({ ...inputState, [i]: { ...inputState[i], color } });
 	};
 
-	const getColor = (i) => (i === 2 ? '#328332' : i === 1 ? '#b9b925' : '#505050');
-
 	const handleNextClick = () => {
 		//check if the word exist
 		const _word = `${inputState[0].letter}${inputState[1].letter}${inputState[2].letter}${inputState[3].letter}${inputState[4].letter}`;
-		if (!foundWords.includes(_word)) return setError('Please Chose A Word');
+		if (!foundWords.includes(_word))
+			return setError(
+				"There are no 5 letter words in this pattern! To know how to play this game, click on '?'"
+			);
 		setError(false);
 
 		const bads = [...badLetters];
@@ -114,7 +140,7 @@ function App() {
 
 		//update possible words
 		setFoundWords(results);
-		if (results.length <= 1) handleOpen();
+		if (results.length <= 1) return handleOpen();
 
 		//add the word to checks with color
 		const newCheck = {
@@ -125,6 +151,13 @@ function App() {
 			4: { letter: inputState[4].letter, color: inputState[4].color },
 		};
 		setChecks([...checks, newCheck]);
+
+		//increase step count
+		setStep(step + 1);
+
+		//get new word
+		const newWord = results[Math.floor(Math.random() * results.length)];
+		if (newWord) addToInput(newWord);
 	};
 
 	const addToInput = (word) => {
@@ -139,9 +172,12 @@ function App() {
 		handleClose();
 	};
 
-	const handleRandomClick = () => {
-		const word = foundWords[Math.floor(Math.random() * foundWords.length)];
-		addToInput(word);
+	const getRandomWord = () => {
+		const newWord = foundWords[Math.floor(Math.random() * foundWords.length)];
+		addToInput(newWord);
+
+		//update step if its the first word
+		if (step === 0) setStep(step + 1);
 	};
 
 	const handleOpen = () => setOpen(true);
@@ -151,7 +187,27 @@ function App() {
 	const handleCloseHelp = () => setOpenHelp(false);
 
 	return (
-		<div>
+		<div className="Root">
+			<Box sx={{ flexGrow: 1 }}>
+				<AppBar position="static" style={appBarStyle}>
+					<Toolbar>
+						<IconButton
+							size="large"
+							edge="start"
+							color="inherit"
+							aria-label="menu"
+							sx={{ mr: 2 }}
+							onClick={handleOpenHelp}
+						>
+							<HelpOutlineRounded />
+						</IconButton>
+						<Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+							Wordle Finder
+						</Typography>
+					</Toolbar>
+				</AppBar>
+			</Box>
+
 			<Grid container mt={0} className="App">
 				<Modal
 					open={open}
@@ -164,7 +220,10 @@ function App() {
 							{foundWords.length === 0 ? (
 								<Stack spacing={2} justifyContent="center" alignItems="center">
 									<Typography sx={{ mt: 1 }}>Oops! No Words!.</Typography>
-									<Typography sx={{ mt: 1 }}>If this is mistake, I need to fix some bugs ;)</Typography>
+									<Typography sx={{ mt: 1 }}>
+										There are no 5 letter words in this pattern! To know how to play this game, click on '?'
+									</Typography>
+									<Typography sx={{ mt: 1 }}>If it still happens, I need to fix some bugs ;)</Typography>
 								</Stack>
 							) : (
 								<Stack spacing={2} justifyContent="center" alignItems="center">
@@ -195,7 +254,7 @@ function App() {
 								How?
 							</Typography>
 							<Typography variant="body1" component="p">
-								1. Click on GET WORD to get a new word.
+								1. Click on 'GET FIRST RANDOM WORD' to get a new word.
 							</Typography>
 							<Typography variant="body1" component="p">
 								2. Go to Wordle and submit the word you got.
@@ -207,10 +266,10 @@ function App() {
 								4. Change letter colors correspondingly by clicking on each letters.
 							</Typography>
 							<Typography variant="body1" component="p">
-								5. Click NEXT.
+								5. Click on 'GET NEXT WORD'.
 							</Typography>
 							<Typography variant="body1" component="p">
-								6. Repeat from step 1.
+								6. Repeat from step 2.
 							</Typography>
 							<Typography variant="body1" component="p">
 								#It will find the word in less than 6 tries.
@@ -222,59 +281,120 @@ function App() {
 					</Box>
 				</Modal>
 
-				<Stack direction="column" justifyContent="center" alignItems="center" spacing={20}>
+				<Grid padding={2}>
 					<Stack direction="column" spacing={2}>
-						<Stack direction="row" spacing={2}>
-							{idxs.map((i) => (
-								<Button
-									key={`button-${i}`}
-									id={`button-${i}`}
-									variant="outlined"
-									style={{ ...letterButtonStyle, backgroundColor: getColor(inputState[i].color) }}
-									onClick={() => changeInputColor(i)}
-								>
-									{inputState[i].letter || '_'}
-								</Button>
+						<Stack direction="column" justifyContent="center" alignItems="center" spacing={letterSpacing}>
+							{checks.map((check, key) => (
+								<Stack key={`check-${key}`} direction="row" spacing={letterSpacing}>
+									{idxs.map((i) => (
+										<Button
+											key={`check-${key}-${i}`}
+											variant="outlined"
+											style={{ ...letterStyle, backgroundColor: getColor(check[i].color), border: '0px' }}
+										>
+											{check[i].letter}
+										</Button>
+									))}
+								</Stack>
+							))}
+
+							{inputState[0].letter && (
+								<Stack direction="row" spacing={letterSpacing}>
+									{idxs.map((i) => (
+										<Button
+											key={`button-${i}`}
+											variant="outlined"
+											style={{
+												...letterStyle,
+												backgroundColor: getColor(inputState[i].color),
+												border: '0px',
+											}}
+											onClick={() => changeInputColor(i)}
+										>
+											{inputState[i].letter || ' '}
+										</Button>
+									))}
+								</Stack>
+							)}
+
+							{[...Array(6 - checks.length - (inputState[0].letter ? 1 : 0))].map((e, i) => (
+								<Stack key={`empty-${i}`} direction="row" spacing={letterSpacing}>
+									{idxs.map((i) => (
+										<Button key={`empty-button-${i}`} variant="outlined" style={letterStyle}>
+											{' '}
+										</Button>
+									))}
+								</Stack>
 							))}
 						</Stack>
 
-						<Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-							<Button variant="contained" onClick={handleRandomClick}>
-								GET WORD
-							</Button>
-							<Button variant="outlined" onClick={handleOpenHelp}>
-								HELP
-							</Button>
-							<Button variant="contained" onClick={handleNextClick}>
-								NEXT
-							</Button>
-						</Stack>
-
-						{error && (
-							<Stack direction="column" spacing={2}>
-								<Typography color="red" variant="caption" component="h6">
-									{error}
-								</Typography>
+						<Stack direction="column" spacing={2}>
+							<Stack direction="row" justifyContent="center" alignItems="center" spacing={2}>
+								{step === 0 ? (
+									<Button variant="contained" onClick={getRandomWord} style={actionStyle}>
+										GET FIRST RANDOM WORD
+									</Button>
+								) : (
+									<Button variant="contained" onClick={handleNextClick} style={actionStyle}>
+										GET NEXT WORD
+									</Button>
+								)}
 							</Stack>
-						)}
-					</Stack>
 
-					<Stack direction="column" spacing={2}>
-						<Typography>Checks</Typography>
-						{checks.map((check) => (
-							<Stack key={check} direction="row" spacing={2}>
-								{idxs.map((i) => (
-									<Card
-										key={`${check}${i}`}
-										style={{ ...checkCardStyle, backgroundColor: getColor(check[i].color) }}
+							{error && (
+								<Stack direction="column" spacing={2}>
+									<Typography color="red" variant="caption" component="h6">
+										{error}
+									</Typography>
+								</Stack>
+							)}
+
+							{[0, 1, 2, 3, 4].includes(step) && (
+								<>
+									<IconButton
+										aria-label="close"
+										color="inherit"
+										size="small"
+										disabled={openInfo}
+										onClick={() => {
+											setOpenInfo(true);
+										}}
 									>
-										{check[i].letter}
-									</Card>
-								))}
-							</Stack>
-						))}
+										<InfoOutlined fontSize="inherit" />
+									</IconButton>
+
+									<Box sx={{ width: '100%' }}>
+										<Collapse in={openInfo}>
+											<Alert
+												action={
+													<IconButton
+														aria-label="close"
+														color="inherit"
+														size="small"
+														onClick={() => {
+															setOpenInfo(false);
+														}}
+													>
+														<CloseIcon fontSize="inherit" />
+													</IconButton>
+												}
+												sx={{ mb: 2 }}
+											>
+												<Stack direction="column" spacing={2}>
+													<Typography color="black" variant="caption" component="h6">
+														{step === 0 && `Click on 'GET FIRST RANDOM WORD' to get your first lucky word.`}
+														{[1, 2, 3, 4].includes(step) &&
+															`Click on each letter to change its colors as in Wordle. But before, sumbit the word in Wordle and check letter colors.`}
+													</Typography>
+												</Stack>
+											</Alert>
+										</Collapse>
+									</Box>
+								</>
+							)}
+						</Stack>
 					</Stack>
-				</Stack>
+				</Grid>
 			</Grid>
 		</div>
 	);
